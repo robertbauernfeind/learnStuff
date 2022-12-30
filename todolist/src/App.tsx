@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function App() {
-  const [todos, setTodos] = useState(["asd", "qwe", "zxc"])
+function App() {  
+  const [todos, setTodos] = useState<any>(localStorage.getItem("todos") ? JSON.parse(localStorage.getItem("todos") as string) : [] as Array<string>)
   const inputRef = useRef<any>(null)
 
   const handleDelete = (e: any) => {
@@ -15,6 +15,10 @@ function App() {
   const handleAdd = (e: any) => {
     setTodos([...todos, inputRef.current.value])
   }
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos])
 
   return (
     <div className="container p-5 my-5">
@@ -33,7 +37,7 @@ function App() {
             </div>
           </div>
           <ul className='list-group'>
-            {todos.map((todo, index) => (
+            {todos.map((todo : any, index: any) => (
               <li className="list-group-item" key={index}>
                 {todo}
                 <button value={index} className="btn btn-danger float-end"
