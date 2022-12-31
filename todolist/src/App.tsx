@@ -1,23 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
+import ListItem from './ListItem';
+import ToDo from './classes/ToDo';
 
 function App() {  
-  const [todos, setTodos] = useState<any>(localStorage.getItem("todos") ? JSON.parse(localStorage.getItem("todos") as string) : [] as Array<string>)
+  const [todos, setTodos] = useState<ToDo[]>(localStorage.getItem("todos") ? JSON.parse(localStorage.getItem("todos") as string) : [] as Array<string>)
   const inputRef = useRef<any>(null)
 
   const handleDelete = (e: any) => {
-    const newTodos = []
-    for (let i = 0; i < todos.length; i++) i != e.target.value && newTodos.push(todos[i])
-
+    const id: number = parseInt(e.target.value)
+    const newTodos = todos.filter(val => val.id !== id)
     setTodos(newTodos)
   }
 
   const handleAdd = (e: any) => {
-    setTodos([...todos, inputRef.current.value])
+    const newToDo = new ToDo(todos.length + 1, inputRef.current.value, false)
+    
+    setTodos([...todos, newToDo])
   }
 
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
+    console.log(todos);
+    
   }, [todos])
 
   return (
@@ -37,13 +42,8 @@ function App() {
             </div>
           </div>
           <ul className='list-group'>
-            {todos.map((todo : any, index: any) => (
-              <li className="list-group-item" key={index}>
-                {todo}
-                <button value={index} className="btn btn-danger float-end"
-                  onClick={handleDelete}
-                >X</button>
-              </li>
+            {todos.map((todo : ToDo) => (
+              <ListItem key={todo.id} todo={todo} handleDelete={handleDelete} />
             ))}
           </ul>
         </div>
