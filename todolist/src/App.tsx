@@ -11,7 +11,7 @@ function App() {
     const id: number = parseInt(e.target.value)
     const newTodos = todos.filter(val => val.id !== id)
     setTodos(newTodos)
-  }
+  } 
 
   const handleAdd = (e: any) => {
     const newToDo = new ToDo(todos.length + 1, inputRef.current.value, false)
