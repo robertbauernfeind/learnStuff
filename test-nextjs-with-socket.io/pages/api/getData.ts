@@ -2,68 +2,66 @@ import { Server } from "socket.io";
 import mysql from "mysql2/promise";
 
 export default async function handler(req: any, res: any) {
+    // console.log(res.socket.server.io.sockets.clients().length)
     if (res.socket.server.io) {
         console.log("socket.io is already running");
     } else {
         console.log("Socket is initializing");
 
-
         const io = new Server(res.socket.server);
         res.socket.server.io = io;
 
         io.on("connection", (socket) => {
-            // console.log("New client connected");
+            const intervals: any = []
 
-            socket.on("getData", payload => {
-                const interval = payload.interval;
-                const index = payload.index;
+            socket.on("getData", async payload => {
+                const { query, interval, isStacked, id } = payload;
 
-                setInterval(async () => {
-                    const min = 0, max = 100;
-                    const data = [[
-                        ["Location", "Temperature"],
-                        ["New York", Math.floor(Math.random() * (max - min) + min)],
-                        ["Berlin", Math.floor(Math.random() * (max - min) + min)],
-                        ["London", Math.floor(Math.random() * (max - min) + min)],
-                        ["Paris", Math.floor(Math.random() * (max - min) + min)],
-                    ], [
-                        ["Location", "Temperature"],
-                        ["Vöcklabuck", Math.floor(Math.random() * (max - min) + min)],
-                        ["Timelkam", Math.floor(Math.random() * (max - min) + min)],
-                        ["Gampern", Math.floor(Math.random() * (max - min) + min)],
-                        ["Weiterschwang", Math.floor(Math.random() * (max - min) + min)],
-                    ]]
+                socket.join(id)
+                socket.broadcast.to(id).emit("data", await loadData(query, isStacked));
+                intervals.push(setInterval(async () => {
+                    socket.broadcast.to(id).emit("data", await loadData(query, isStacked));
+                }, interval))
+            })
 
-                    let res: any
-                    try {
-                    res = await loadData();
-                    } catch (err: any) {
-                        console.log(err.message)
-                    }
-                    
-                    socket.emit("data", res);
-                }, interval)
+            socket.on("disconnect", () => {
+                for (const interval of intervals) clearInterval(interval)
+                console.log("disconnected");
+                socket._cleanup();
             })
         })
     }
     res.end();
 }
 
-async function loadData() {
-    const con = await mysql.createConnection({
-        host: "dashy.at",
-        user: "Robert",
-        password: "6x6J4jAdQDs%xfnt6dP2",
-        database: "googlecharts",
-        connectTimeout: 10000
-    });
-
+async function loadData(query: string, isStacked: boolean) {
+    let con: any
     try {
-        const [rows, fields] = await con.query("SELECT * FROM testdata");
-        const parsedRows = Object.values(JSON.parse(JSON.stringify(rows)));
+        con = await mysql.createConnection({
+            host: "dashy.at",
+            user: "Robert",
+            password: "6x6J4jAdQDs%xfnt6dP2",
+            database: "googlecharts",
+            connectTimeout: 5000
+        })
 
-        const data: any[] = [], fieldNames: string[] = [];
+        if (con) {
+            const [rows, fields] = await con.query(query);
 
+            if (isStacked) return parseStackedData(rows, fields);
+            else return parseData(rows, fields);
+        }
+    } catch (err: any) {
+        console.log(err.message)
+    } finally {
+        if (con) con.end()
+    }
+}
+
+function parseData(rows: any, fields: any) {
+    const parsedRows = Object.values(JSON.parse(JSON.stringify(rows)));
+
+    const data: any[] = [], fieldNames: string[] = []
     // prepare data for google charts
     // Iterate field names and add field name if it is not ID
     for (const field of fields) {
@@ -86,9 +84,24 @@ async function loadData() {
     }
 
     return data;
-    } catch (err: any) {
-        console.log(err.message)
-    } finally {
-        if(con) con.end()
+}
+
+function parseStackedData(rows: any, fields: any) {
+    const parsedRows = Object.values(JSON.parse(JSON.stringify(rows)));
+
+    const data: any[] = [], fieldNames: string[] = []
+
+    for (const field of fields) {
+        if (field.name !== "ID") fieldNames.push(field.name)
     }
+
+    for (const field of fieldNames) {
+        const fieldData: any[] = []
+        for (const row of parsedRows) {
+            const parsedRow = JSON.parse(JSON.stringify(row))
+            fieldData.push(parsedRow[field])
+        }
+        data.push([field, ...fieldData])
+    }
+    return data;
 }

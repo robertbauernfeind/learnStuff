@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
-import { io, Socket } from "socket.io-client"
+import { Socket } from "socket.io-client"
 import options from "./initialOptions.json"
-import Script from 'next/script'
-import useGoogleCharts from '@/customHooks/useGoogle'
 import { initSocket } from '@/lib/sockets'
 
 type ChartProps = {
     google: any,
     chartInfo: any
 }
-export default function PieChart({ google, chartInfo }: ChartProps) {
+export default function ColumnChart({ google, chartInfo }: ChartProps) {
     const [data, setData] = useState<any>()
     const[socket, setSocket] = useState<Socket | undefined>()
     const divid = "chart_div" + chartInfo.id
@@ -55,7 +53,7 @@ export default function PieChart({ google, chartInfo }: ChartProps) {
         var chartData = new google.visualization.arrayToDataTable(data);
 
         // Instantiate and draw our chart, passing in some options.
-        var chart = new google.visualization.PieChart(document.getElementById(divid));
+        var chart = new google.visualization.ColumnChart(document.getElementById(divid));
 
         const chartOptions = {
             ...options,
