@@ -38,8 +38,6 @@ export default function Home() {
 
   return (
     <>
-      <h1>Hello</h1>
-      <p>Data:</p>
       <div style={{
         display: "flex",
         flexWrap: "wrap",
@@ -48,25 +46,34 @@ export default function Home() {
         justifyContent: "center",
         listStyleType: "none",
       }}>
-        {/* <PieChart index={0} google={google} socket={socket} interval={2500} />
-        <PieChart index={1} google={google} socket={socket} interval={5000} />
-        <PieChart index={2} google={google} socket={socket} interval={2500} />
-        <PieChart index={3} google={google} socket={socket} interval={2500} />
-        <PieChart index={4} google={google} socket={socket} interval={2500} />
-        <PieChart index={5} google={google} socket={socket} interval={2500} />
-        <PieChart index={6} google={google} socket={socket} interval={2500} />
-        <PieChart index={7} google={google} socket={socket} interval={2500} />
-        <PieChart index={8} google={google} socket={socket} interval={2500} /> */}
         <PieChart google={google} chartInfo={{
           id: 0,
           interval: 2500,
           query: "SELECT * FROM testdata",
+          options: {},
+          design: {
+            style: {
+              width: 400,
+              height: 300,
+            },
+              header: "Pie Chart",
+              title: "Some title",
+          }
         }} />
-        
+
         <ColumnChart google={google} chartInfo={{
           id: 1,
           interval: 2500,
           query: "SELECT * FROM secondtestdata",
+          options: {},
+          design: {
+            style: {
+              width: 400,
+              height: 300,
+            },
+            header: "Column Chart",
+            title: "Some title",
+          }
         }} />
 
         <StackedColumnChart google={google} chartInfo={{
@@ -75,6 +82,14 @@ export default function Home() {
           query: "SELECT * FROM teststackeddata",
           options: {
             isStacked: true,
+          },
+          design: {
+            style: {
+              width: 400,
+              height: 300,
+            },
+            header: "Stacked Column Chart",
+            title: "Some title",
           }
         }} />
       </div>

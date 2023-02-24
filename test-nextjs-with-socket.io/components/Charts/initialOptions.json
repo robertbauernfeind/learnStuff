@@ -1,7 +1,5 @@
 {
-    "title": "Temperature in cities",
-    "width": 400,
-    "height": 300,
-    "is3D": true,
+    "width": 500,
+    "height": 400,
     "legend": "none"
 }

@@ -1,6 +1,7 @@
 import { initSocket } from '@/lib/sockets'
 import { useEffect, useState } from 'react'
 import { io, Socket } from "socket.io-client"
+import CardLayout from '../CardLayout'
 import options from "./initialOptions.json"
 
 type ChartProps = {
@@ -8,9 +9,11 @@ type ChartProps = {
     chartInfo: any
 }
 export default function StackedColumnChart({ google, chartInfo }: ChartProps) {
-    const [data, setData] = useState<any[]>([])
+    const [data, setData] = useState<any>()
     const [socket, setSocket] = useState<Socket | undefined>()
     const divid = "chart_div" + chartInfo.id
+
+    const { id, query, interval, design } = chartInfo
 
     useEffect(() => {
         (async () => {
@@ -25,13 +28,15 @@ export default function StackedColumnChart({ google, chartInfo }: ChartProps) {
 
     useEffect(() => {
         if (!socket) return
+        if (id === undefined || query === undefined || interval === undefined) return
+
         socket.on("connect", () => console.log("connected"))
 
         socket.emit("getData", {
             id: chartInfo.id,
             query: chartInfo.query,
             interval: chartInfo.interval,
-            isStacked: true
+            isStacked: true,
         })
         socket.on("data", (res) => setData(res))
         console.log("Loading data");
@@ -46,6 +51,8 @@ export default function StackedColumnChart({ google, chartInfo }: ChartProps) {
     // executing every ms (may change to interval?)
     useEffect(() => {
         if (!google || !data) return
+        if (id === undefined || query === undefined || interval === undefined) return
+
         google.charts.setOnLoadCallback(drawChart);
     }, [data])
 
@@ -58,13 +65,30 @@ export default function StackedColumnChart({ google, chartInfo }: ChartProps) {
 
         const chartOptions = {
             ...options,
-            ...chartInfo.options
+            ...chartInfo.options,
         }
+
+        if ((design !== undefined) && (design.style !== undefined) && (design.style.height !== undefined)) chartOptions.height = design.style.height - 85;
+        if ((design !== undefined) && (design.style !== undefined) && (design.style.width !== undefined)) chartOptions.width = design.style.width
+
 
         chart.draw(chartData, chartOptions);
     }
 
     return (
-        <div id={divid} style={{ border: "1px solid black", margin: 10 }} />
+        <CardLayout
+            header={design && design.header}
+            title={design && design.title}
+            style={design && design.style}
+        >
+            {(id === undefined || query === undefined || interval === undefined) ? <div>Please make sure to provide id, query and interval</div>
+                :
+                <div id={divid} style={{
+                    overflow: "hidden",
+                    display: "flex",
+                    justifyContent: "center",
+                }} />
+            }
+        </CardLayout>
     )
 }

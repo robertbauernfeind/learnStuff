@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react'
-import { Socket } from "socket.io-client"
+import { io, Socket } from "socket.io-client"
 import options from "./initialOptions.json"
+import Script from 'next/script'
+import useGoogleCharts from '@/customHooks/useGoogle'
 import { initSocket } from '@/lib/sockets'
+import CardLayout from '../CardLayout'
 
 type ChartProps = {
-    google: any,
+    google: any
     chartInfo: any
 }
 export default function ColumnChart({ google, chartInfo }: ChartProps) {
     const [data, setData] = useState<any>()
-    const[socket, setSocket] = useState<Socket | undefined>()
+    const [socket, setSocket] = useState<Socket | undefined>()
     const divid = "chart_div" + chartInfo.id
 
+    const { id, query, interval, design } = chartInfo
+  
     useEffect(() => {
         (async () => {
             setSocket(await initSocket())
@@ -25,6 +30,8 @@ export default function ColumnChart({ google, chartInfo }: ChartProps) {
 
     useEffect(() => {
         if (!socket) return
+        if (id === undefined || query === undefined || interval === undefined) return
+
         socket.on("connect", () => console.log("connected"))
 
         socket.emit("getData", {
@@ -45,6 +52,8 @@ export default function ColumnChart({ google, chartInfo }: ChartProps) {
     // executing every ms (may change to interval?)
     useEffect(() => {
         if (!google || !data) return
+        if (id === undefined || query === undefined || interval === undefined) return
+
         google.charts.setOnLoadCallback(drawChart);
     }, [data])
 
@@ -57,13 +66,30 @@ export default function ColumnChart({ google, chartInfo }: ChartProps) {
 
         const chartOptions = {
             ...options,
-            ...chartInfo.options
+            ...chartInfo.options,
         }
+
+        if ((design !== undefined) && (design.style !== undefined) && (design.style.height !== undefined)) chartOptions.height = design.style.height - 85;
+        if ((design !== undefined) && (design.style !== undefined) && (design.style.width !== undefined)) chartOptions.width = design.style.width
+
 
         chart.draw(chartData, chartOptions);
     }
 
     return (
-        <div id={divid} style={{ border: "1px solid black", margin: 10 }} />
+        <CardLayout
+            header={design && design.header}
+            title={design && design.title}
+            style={design && design.style}
+        >
+            {(id === undefined || query === undefined || interval === undefined) ? <div>Please make sure to provide id, query and interval</div>
+            :
+            <div id={divid} style={{
+                overflow: "hidden",
+                display: "flex",
+                justifyContent: "center",
+            }} />
+        }
+        </CardLayout>
     )
 }
