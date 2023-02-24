@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { io, Socket } from "socket.io-client"
-import Script from 'next/script'
 import useGoogleCharts from '@/customHooks/useGoogle'
 import PieChart from '@/components/Charts/PieChart'
 import StackedColumnChart from '@/components/Charts/StackedColumnChart'

@@ -25,13 +25,13 @@ export default function CardLayout({ children, preview, header, title, style }: 
                 fontSize: "1.5rem",
                 fontWeight: "bold"
             }}>
-                {header ? header : ""}
+                {header}
             </Card.Header>
             <Card.Body>
                 <Card.Title style={{
                     padding: "0px 0px 0px 10px"
                 }}>
-                    {title ? title : ""}
+                    {title}
                 </Card.Title>
                 <main>{children}</main>
             </Card.Body>
